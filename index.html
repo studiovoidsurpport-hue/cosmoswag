@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>COSMOSWAG AI LAB</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#070912;color:#eaf2ff;font-family:Inter,"Noto Sans KR",sans-serif}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(rgba(80,130,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(80,130,255,.035) 1px,transparent 1px);background-size:32px 32px}
+header{padding:28px 5vw 18px;border-bottom:1px solid #202a3d;display:flex;justify-content:space-between;align-items:center}
+.logo{font-weight:900;letter-spacing:2px;font-size:22px}.logo span{color:#5ee7ff}.live{font-size:12px;padding:8px 12px;border:1px solid #21465b;border-radius:999px;color:#75f0bc;background:#0a1719}
+main{max-width:1400px;margin:auto;padding:26px 5vw 60px}.hero{margin-bottom:22px}.hero h1{font-size:42px;margin:0 0 8px}.hero p{color:#91a0b8;margin:0}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card{background:#0c1220;border:1px solid #1e2b42;border-radius:16px;padding:18px;box-shadow:0 10px 30px #0005}.label{color:#8292ad;font-size:12px}.num{font-size:30px;font-weight:800;margin-top:8px}
+.two{display:grid;grid-template-columns:1.35fr .65fr;gap:14px;margin-top:14px}.title{font-weight:800;margin-bottom:15px}.bars{height:220px;display:flex;align-items:end;gap:7px}.bar{flex:1;background:linear-gradient(180deg,#55e6ff,#3d68ff);min-height:3px;border-radius:6px 6px 2px 2px;position:relative}.bar b{position:absolute;bottom:100%;font-size:9px;color:#91a0b8}.bar small{position:absolute;top:100%;font-size:9px;color:#66758d}
+.cause{display:flex;gap:12px;align-items:center;margin:12px 0}.dot{width:9px;height:9px;border-radius:50%;background:#55e6ff}.cause span{flex:1;color:#a8b5ca}.cause b{font-size:13px}
+.brain{display:grid;grid-template-columns:repeat(8,1fr);gap:9px}.node{height:34px;border:1px solid #315070;border-radius:9px;background:#101c2e;animation:pulse 2.5s infinite alternate}.node:nth-child(3n){animation-delay:.5s}.node:nth-child(5n){animation-delay:1s}@keyframes pulse{to{box-shadow:0 0 18px #36d8ff66;border-color:#58dfff}}
+.learning{font-size:16px;line-height:1.6}.learning strong{color:#65e9ff}.stream{max-height:330px;overflow:auto}.event{padding:11px 0;border-bottom:1px solid #1b2537;font-size:13px}.event time{color:#65758d}.tag{display:inline-block;margin-left:7px;padding:3px 7px;border-radius:6px;background:#18243a;color:#9ec8ff}
+footer{color:#53627a;text-align:center;padding:30px;font-size:12px}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.hero h1{font-size:32px}}
+@media(max-width:520px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div class="logo">COSMOSWAG <span>AI LAB</span></div><div class="live">● FIRESTORE LIVE</div></header>
+<main>
+<section class="hero"><h1>AI LEARNING CENTER</h1><p>코스모스웩 AUTO PILOT의 경험과 학습 상태를 실시간으로 보여주는 웹 대시보드</p></section>
+<section class="grid">
+<div class="card"><div class="label">누적 사망 이벤트</div><div class="num" id="deaths">0</div></div>
+<div class="card"><div class="label">학습 샘플</div><div class="num" id="samples">0</div></div>
+<div class="card"><div class="label">세션</div><div class="num" id="sessions">0</div></div>
+<div class="card"><div class="label">최근 원인</div><div class="num" id="cause">-</div></div>
+</section>
+<section class="two">
+<div class="card"><div class="title">레벨별 사망 분포</div><div class="bars" id="bars"></div></div>
+<div class="card"><div class="title">사망 원인</div><div id="causes"></div></div>
+</section>
+<section class="two">
+<div class="card"><div class="title">🧠 지금 AI가 학습하는 것</div><div class="learning" id="learning">Firestore 연결을 기다리는 중...</div></div>
+<div class="card"><div class="title">신경망 활동</div><div class="brain" id="brain"></div></div>
+</section>
+<section class="card" style="margin-top:14px"><div class="title">LIVE EXPERIENCE STREAM</div><div class="stream" id="stream"><div class="event">데이터를 기다리는 중...</div></div></section>
+</main><footer>COSMOSWAG AI LAB · AUTO PILOT TELEMETRY</footer>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+import {getFirestore,collection,query,orderBy,limit,onSnapshot} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyCkW-IFa82DPkcoreytDKvgCBc54mL-4",authDomain:"cosmoswag.firebaseapp.com",projectId:"cosmoswag",storageBucket:"cosmoswag.firebasestorage.app",messagingSenderId:"470887950847",appId:"1:470887950847:web:c697a130fdc6ff08de5fca"};
+const db=getFirestore(initializeApp(firebaseConfig));
+const $=id=>document.getElementById(id);
+const brain=$("brain"); for(let i=0;i<40;i++){let n=document.createElement("div");n.className="node";brain.appendChild(n)}
+function render(snap){
+ const rows=snap.docs.map(d=>d.data()); $("deaths").textContent=rows.length;
+ $("samples").textContent=rows.reduce((m,x)=>Math.max(m,Number(x.trained||0)),0);
+ $("sessions").textContent=new Set(rows.map(x=>x.sessionId).filter(Boolean)).size;
+ $("cause").textContent=rows[0]?.cause||"-";
+ const levels={}; const causes={}; rows.forEach(x=>{levels[x.level||0]=(levels[x.level||0]||0)+1; causes[x.cause||"unknown"]=(causes[x.cause||"unknown"]||0)+1});
+ const max=Math.max(1,...Object.values(levels));
+ $("bars").innerHTML=Object.entries(levels).sort((a,b)=>a[0]-b[0]).slice(-30).map(([l,v])=>`<div class="bar" style="height:${Math.max(4,v/max*190)}px"><b>${v}</b><small>${l}</small></div>`).join("");
+ $("causes").innerHTML=Object.entries(causes).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`<div class="cause"><i class="dot"></i><span>${c}</span><b>${v}</b></div>`).join("");
+ $("stream").innerHTML=rows.slice(0,80).map(x=>`<div class="event"><time>${x.level?`LEVEL ${x.level}`:"EVENT"}</time> <b>${x.cause||"unknown"}</b><span class="tag">action ${x.action??"-"}</span><span class="tag">TTC ${Number(x.ttc||0).toFixed(2)}s</span></div>`).join("")||'<div class="event">아직 이벤트가 없습니다.</div>';
+ const r=rows[0]||{}; const text=r.cause==="edge"?"벽/가장자리 회피 타이밍과 안전 여유를 학습 중":r.cause==="collision"?"충돌 직전 위험 패턴과 회피 액션을 학습 중":r.cause==="timeout"?"시간에 따른 경로 안정성과 의사결정을 학습 중":"최근 플레이에서 얻은 행동-결과 관계를 분석 중";
+ $("learning").innerHTML=`<strong>${text}</strong><br><br>최근 이벤트의 위치, 속도, TTC, 위협 수, 선택 액션을 경험 데이터로 비교하고 있습니다.`;
+}
+const q=query(collection(db,"apDeathEvents"),orderBy("createdAt","desc"),limit(300));
+onSnapshot(q,render,e=>{$("learning").innerHTML="Firestore 연결 오류: "+e.message});
+</script>
+</body></html>
