@@ -75,6 +75,14 @@ async function connect(){
   await signInAnonymously(auth);
   const q=query(collection(db,"apDeathEvents"),orderBy("createdAt","desc"),limit(300));
   onSnapshot(q,render,e=>{$("learning").innerHTML="<strong>Firestore 연결 오류</strong><br><br>"+e.message});
+  const lq=query(collection(db,"apLearningStatus"),orderBy("updatedAt","desc"),limit(1));
+  onSnapshot(lq,snap=>{
+    const d=snap.docs[0]?.data();
+    if(!d) return;
+    const status=d.status||"IDLE", detail=d.detail||"새로운 경험을 기다리는 중";
+    const badge=status==="LEARNING"?"🟡 LEARNING":status==="SAVING"?"🟣 SAVING":"🟢 IDLE";
+    $("learning").innerHTML=`<strong>${badge}</strong><br><br>${detail}<br><br>학습 샘플: ${Number(d.trained||0).toLocaleString()} · 이번 경험: ${Number(d.sample||0).toLocaleString()} · loss: ${Number(d.loss||0).toFixed(3)}`;
+  },e=>{ console.warn("learning status:",e.message); });
  }catch(e){
   $("learning").innerHTML="<strong>Firebase 인증 오류</strong><br><br>"+e.message+"<br><br>Firebase Console에서 Authentication → Sign-in method → Anonymous를 켜주세요.";
  }
