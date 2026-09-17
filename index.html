@@ -43,8 +43,11 @@ footer{color:#53627a;text-align:center;padding:30px;font-size:12px}
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
 import {getFirestore,collection,query,orderBy,limit,onSnapshot} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+import {getAuth,signInAnonymously,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 const firebaseConfig={apiKey:"AIzaSyCkW-IFa82DPkcoreytDKvgCBc54mL-4",authDomain:"cosmoswag.firebaseapp.com",projectId:"cosmoswag",storageBucket:"cosmoswag.firebasestorage.app",messagingSenderId:"470887950847",appId:"1:470887950847:web:c697a130fdc6ff08de5fca"};
-const db=getFirestore(initializeApp(firebaseConfig));
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
 const $=id=>document.getElementById(id);
 const brain=$("brain"); for(let i=0;i<40;i++){let n=document.createElement("div");n.className="node";brain.appendChild(n)}
 function render(snap){
@@ -60,7 +63,15 @@ function render(snap){
  const r=rows[0]||{}; const text=r.cause==="edge"?"벽/가장자리 회피 타이밍과 안전 여유를 학습 중":r.cause==="collision"?"충돌 직전 위험 패턴과 회피 액션을 학습 중":r.cause==="timeout"?"시간에 따른 경로 안정성과 의사결정을 학습 중":"최근 플레이에서 얻은 행동-결과 관계를 분석 중";
  $("learning").innerHTML=`<strong>${text}</strong><br><br>최근 이벤트의 위치, 속도, TTC, 위협 수, 선택 액션을 경험 데이터로 비교하고 있습니다.`;
 }
-const q=query(collection(db,"apDeathEvents"),orderBy("createdAt","desc"),limit(300));
-onSnapshot(q,render,e=>{$("learning").innerHTML="Firestore 연결 오류: "+e.message});
+async function connect(){
+ try{
+  await signInAnonymously(auth);
+  const q=query(collection(db,"apDeathEvents"),orderBy("createdAt","desc"),limit(300));
+  onSnapshot(q,render,e=>{$("learning").innerHTML="<strong>Firestore 연결 오류</strong><br><br>"+e.message});
+ }catch(e){
+  $("learning").innerHTML="<strong>Firebase 인증 오류</strong><br><br>"+e.message+"<br><br>Firebase Console에서 Authentication → Sign-in method → Anonymous를 켜주세요.";
+ }
+}
+connect();
 </script>
 </body></html>
