@@ -35,7 +35,7 @@ footer{color:#53627a;text-align:center;padding:30px;font-size:12px}
 <div class="card"><div class="title">사망 원인</div><div id="causes"></div></div>
 </section>
 <section class="two">
-<div class="card"><div class="title">🧠 지금 AI가 학습하는 것</div><div class="learning" id="learning">Firestore 연결을 기다리는 중...</div></div>
+<div class="card"><div class="title">🧠 AI LIVE TRAINING</div><div class="learning" id="learning">Firestore 연결을 기다리는 중...</div><div id="trainbar" style="margin-top:14px;height:8px;background:#172033;border-radius:99px;overflow:hidden"><div id="trainfill" style="height:100%;width:0%;background:#65e9ff;transition:width .2s"></div></div><div id="trainmeta" style="margin-top:10px;font-size:12px;color:#7f91aa">실제 학습 이벤트를 기다리는 중...</div></div>
 <div class="card"><div class="title">신경망 활동</div><div class="brain" id="brain"></div></div>
 </section>
 <section class="card" style="margin-top:14px"><div class="title">LIVE EXPERIENCE STREAM</div><div class="stream" id="stream"><div class="event">데이터를 기다리는 중...</div></div></section>
@@ -81,7 +81,11 @@ async function connect(){
     if(!d) return;
     const status=d.status||"IDLE", detail=d.detail||"새로운 경험을 기다리는 중";
     const badge=status==="LEARNING"?"🟡 LEARNING":status==="SAVING"?"🟣 SAVING":"🟢 IDLE";
-    $("learning").innerHTML=`<strong>${badge}</strong><br><br>${detail}<br><br>학습 샘플: ${Number(d.trained||0).toLocaleString()} · 이번 경험: ${Number(d.sample||0).toLocaleString()} · loss: ${Number(d.loss||0).toFixed(3)}`;
+    const sample=Number(d.sample||0), trained=Number(d.trained||0), loss=Number(d.loss||0);
+    const phase=d.phase||"waiting";
+    $("learning").innerHTML=`<strong>${badge}</strong><br><br>${detail}<br><br><b>Phase:</b> ${phase} · <b>이번 학습:</b> ${sample.toLocaleString()} · <b>누적:</b> ${trained.toLocaleString()} · <b>loss:</b> ${loss.toFixed(3)}`;
+    $("trainfill").style.width=(status==="LEARNING"?Math.min(96,12+((sample%20)/20)*84):(status==="SAVING"?100:0))+"%";
+    $("trainmeta").textContent=`실시간 Firestore · ${new Date(Number(d.updatedAt||Date.now())).toLocaleTimeString()} · 상태 ${status}`;
   },e=>{ console.warn("learning status:",e.message); });
  }catch(e){
   $("learning").innerHTML="<strong>Firebase 인증 오류</strong><br><br>"+e.message+"<br><br>Firebase Console에서 Authentication → Sign-in method → Anonymous를 켜주세요.";
