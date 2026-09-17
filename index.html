@@ -44,7 +44,14 @@ footer{color:#53627a;text-align:center;padding:30px;font-size:12px}
 import {initializeApp} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
 import {getFirestore,collection,query,orderBy,limit,onSnapshot} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 import {getAuth,signInAnonymously,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-const firebaseConfig={apiKey:"AIzaSyCkW-IFa82DPkcoreytDKvgCBc54mL-4",authDomain:"cosmoswag.firebaseapp.com",projectId:"cosmoswag",storageBucket:"cosmoswag.firebasestorage.app",messagingSenderId:"470887950847",appId:"1:470887950847:web:c697a130fdc6ff08de5fca"};
+const firebaseConfig={
+  apiKey:"AIzaSyCkLDW-IFa82DPkcoreytDKvgCBc54mL-4",
+  authDomain:"cosmoswag.firebaseapp.com",
+  projectId:"cosmoswag",
+  storageBucket:"cosmoswag.firebasestorage.app",
+  messagingSenderId:"470887950847",
+  appId:"1:470887950847:web:c697a130fdc6ff08de5fca"
+};
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
 const db=getFirestore(app);
